@@ -20,6 +20,7 @@ from functools import partial
 import dateutil
 import scipy.interpolate
 import numpy as np
+import dask.array as da
 import numba
 from sklearn.gaussian_process import GaussianProcessRegressor
 
@@ -333,9 +334,11 @@ class InterpolationTask(EOTask):
         # build interpolation function
         if len(input_x) > 1:
             interp_func = self.get_interpolation_function(input_x, input_y)
-
-            # interpolate non-NaN values in resampled time values
-            new_data[~np.isnan(res_temp_values)] = interp_func(res_temp_values[~np.isnan(res_temp_values)])
+            valid = ~np.isnan(res_temp_values)
+            if valid.any():
+                chunk_size = max(1, round(len(input_x) / len(resampled_times)))
+                values = da.from_array(res_temp_values[valid], chunks=chunk_size)
+                new_data[valid] = da.map_blocks(interp_func, values, dtype=np.float64).compute()
 
         # return interpolated values
         return new_data
