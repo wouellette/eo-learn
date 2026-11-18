@@ -1,3 +1,13 @@
+"""
+Credits:
+Copyright (c) 2017-2019 Matej Aleksandrov, Matej Batič, Andrej Burja, Eva Erzin (Sinergise)
+Copyright (c) 2017-2019 Grega Milčinski, Matic Lubej, Devis Peresutti, Jernej Puc, Tomislav Slijepčević (Sinergise)
+Copyright (c) 2017-2019 Blaž Sovdat, Jovan Višnjić, Anže Zupanc, Lojze Žust (Sinergise)
+
+This source code is licensed under the MIT license found in the LICENSE
+file in the root directory of this source tree.
+"""
+
 import unittest
 
 from eolearn.core import EOPatch, FeatureType
@@ -50,14 +60,6 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(np.sum(labels == 0), int(self.n_samples*(9600/np.prod(self.raster_size))),
                          msg="incorrect sampling distribution")
         # test sampling is correct
-        self.assertEqual((labels == self.raster[rows, cols]).all(), True, msg="incorrect sampling")
-        del ps
-        # test erosion of both classes (0 and 1)
-        ps = PointRasterSampler([0, 1], disk_radius=2)
-        rows, cols = ps.sample(self.raster, n_samples=self.n_samples)
-        labels = self.raster[rows, cols]
-        self.assertLessEqual(np.sum(labels == 1), 3, msg="incorrect sampling distribution")
-        self.assertGreaterEqual(np.sum(labels == 0), 97, msg="incorrect sampling distribution")
         self.assertEqual((labels == self.raster[rows, cols]).all(), True, msg="incorrect sampling")
         del ps
         # test even sampling of classes

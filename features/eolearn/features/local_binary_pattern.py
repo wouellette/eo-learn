@@ -1,7 +1,17 @@
-""" Module for computing the Local Binary Pattern in EOPatch """
+"""
+Module for computing the Local Binary Pattern in EOPatch
 
+Credits:
+Copyright (c) 2018-2019 Hugo Fournier (Magellium)
+Copyright (c) 2017-2019 Matej Aleksandrov, Devis Peresutti (Sinergise)
+
+This source code is licensed under the MIT license found in the LICENSE
+file in the root directory of this source tree.
+"""
+
+import skimage.feature
 import numpy as np
-from skimage.feature import local_binary_pattern
+
 from eolearn.core import EOTask, FeatureType
 
 
@@ -38,7 +48,8 @@ class LocalBinaryPatternTask(EOTask):
         for time in range(data.shape[0]):
             for band in range(data.shape[-1]):
                 image = data[time, :, :, band]
-                result[time, :, :, band] = local_binary_pattern(image, self.nb_points, self.radius, method='uniform')
+                result[time, :, :, band] = skimage.feature.local_binary_pattern(image, self.nb_points, self.radius,
+                                                                                method='uniform')
         return result
 
     def execute(self, eopatch):

@@ -1,15 +1,23 @@
 """
 This module implements the co-registration transformers.
+
+Credits:
+Copyright (c) 2017-2019 Matej Aleksandrov, Matej Batič, Andrej Burja, Eva Erzin (Sinergise)
+Copyright (c) 2017-2019 Grega Milčinski, Matic Lubej, Devis Peresutti, Jernej Puc, Tomislav Slijepčević (Sinergise)
+Copyright (c) 2017-2019 Blaž Sovdat, Jovan Višnjić, Anže Zupanc, Lojze Žust (Sinergise)
+
+This source code is licensed under the MIT license found in the LICENSE
+file in the root directory of this source tree.
 """
 
 import logging
-import numpy as np
-import cv2
+import copy
 
 from abc import ABC, abstractmethod
-from copy import deepcopy
 from enum import Enum
-from registration import CrossCorr
+import registration
+import cv2
+import numpy as np
 
 from eolearn.core import EOTask, FeatureType
 
@@ -84,6 +92,13 @@ class RegistrationTask(EOTask, ABC):
 
     @abstractmethod
     def register(self, src, trg, trg_mask=None, src_mask=None):
+        """ Method for registration
+
+        :param src: src
+        :param trg: trg
+        :param trg_mask: trg_mask
+        :param src_mask: src_mask
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -113,10 +128,10 @@ class RegistrationTask(EOTask, ABC):
         self.check_params()
         self.get_params()
 
-        new_eopatch = deepcopy(eopatch)
+        new_eopatch = copy.deepcopy(eopatch)
 
         f_type, f_name = next(self.registration_feature(eopatch))
-        sliced_data = deepcopy(eopatch[f_type][f_name][..., self.channel])
+        sliced_data = copy.deepcopy(eopatch[f_type][f_name][..., self.channel])
         time_frames = sliced_data.shape[0]
 
         iflag = self._get_interpolation_flag(self.interpolation_type)
@@ -221,7 +236,7 @@ class ThunderRegistration(RegistrationTask):
         :return: Estimated 2D transformation matrix of shape 2x3
         """
         # Initialise instance of CrossCorr object
-        ccreg = CrossCorr()
+        ccreg = registration.CrossCorr()
         # padding_value = 0
         # Compute translation between pair of images
         model = ccreg.fit(src, reference=trg)
@@ -248,10 +263,15 @@ class ECCRegistration(RegistrationTask):
     def get_params(self):
         LOGGER.info("{:s}:Params for this registration are:".format(self.__class__.__name__))
         LOGGER.info("\t\t\t\tMaxIters: {:d}".format(self.params['MaxIters']))
+        LOGGER.info("\t\t\t\tgaussFiltSize: {:d}".format(self.params['gaussFiltSize']))
 
     def check_params(self):
-        if (self.params is None) or (not isinstance(self.params.get('MaxIters'), int)):
-            self.params = dict(MaxIters=200)
+        if not isinstance(self.params.get('MaxIters'), int):
+            LOGGER.info("{:s}:MaxIters set to 200".format(self.__class__.__name__))
+            self.params['MaxIters'] = 200
+        if not isinstance(self.params.get('gaussFilterSize'), int):
+            LOGGER.info("{:s}:gaussFilterSize set to 1".format(self.__class__.__name__))
+            self.params['gaussFiltSize'] = 1
 
     def register(self, src, trg, trg_mask=None, src_mask=None):
         """ Implementation of pair-wise registration and warping using Enhanced Correlation Coefficient
@@ -279,7 +299,11 @@ class ECCRegistration(RegistrationTask):
         # Run the ECC algorithm. The results are stored in warp_matrix.
         _, warp_matrix = cv2.findTransformECC(src.astype(np.float32),
                                               trg.astype(np.float32),
-                                              warp_matrix, warp_mode, criteria)
+                                              warp_matrix,
+                                              warp_mode,
+                                              criteria,
+                                              None,
+                                              self.params['gaussFiltSize'])
         return warp_matrix
 
 
@@ -294,22 +318,18 @@ class PointBasedRegistration(RegistrationTask):
         LOGGER.info("\t\t\t\tRANSACThreshold: {:.2f}".format(self.params['RANSACThreshold']))
 
     def check_params(self):
-        if self.params is None:
-            self.params = dict(Model='Euler', Descriptor='SIFT', MaxIters=1000, RANSACThreshold=7.0)
-        else:
-            if not (self.params.get('Model') in ['Euler', 'PartialAffine', 'Homography']):
-                LOGGER.info("{:s}:Model set to Euler".format(self.__class__.__name__))
-                self.params['Model'] = 'Euler'
-            if not (self.params.get('Descriptor') in ['SIFT', 'SURF']):
-                LOGGER.info("{:s}:Descriptor set to SIFT".format(self.__class__.__name__))
-                self.params['Descriptor'] = 'SIFT'
-            if (self.params.get('MaxIters') is None) or (not isinstance(self.params.get('MaxIters'), int)):
-                LOGGER.info("{:s}:RANSAC MaxIters set to 1000".format(self.__class__.__name__))
-                self.params['MaxIters'] = 1000
-            if (self.params.get('RANSACThreshold') is None) or (not isinstance(self.params.get('RANSACThreshold'),
-                                                                               float)):
-                LOGGER.info("{:s}:RANSAC threshold set to 7.0".format(self.__class__.__name__))
-                self.params['RANSACThreshold'] = 7.0
+        if not (self.params.get('Model') in ['Euler', 'PartialAffine', 'Homography']):
+            LOGGER.info("{:s}:Model set to Euler".format(self.__class__.__name__))
+            self.params['Model'] = 'Euler'
+        if not (self.params.get('Descriptor') in ['SIFT', 'SURF']):
+            LOGGER.info("{:s}:Descriptor set to SIFT".format(self.__class__.__name__))
+            self.params['Descriptor'] = 'SIFT'
+        if not isinstance(self.params.get('MaxIters'), int):
+            LOGGER.info("{:s}:RANSAC MaxIters set to 1000".format(self.__class__.__name__))
+            self.params['MaxIters'] = 1000
+        if not isinstance(self.params.get('RANSACThreshold'), float):
+            LOGGER.info("{:s}:RANSAC threshold set to 7.0".format(self.__class__.__name__))
+            self.params['RANSACThreshold'] = 7.0
 
     def register(self, src, trg, trg_mask=None, src_mask=None):
         """ Implementation of pair-wise registration and warping using point-based matching

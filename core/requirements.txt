@@ -1,7 +1,6 @@
-numpy
-networkx
-pydot
-graphviz
-matplotlib
-jinja2
-pygments
+attrs>=18.2.0
+python-dateutil
+numpy>=1.16
+geopandas
+sentinelhub>=2.5.0
+tqdm>=4.27

@@ -1,3 +1,13 @@
+"""
+Credits:
+Copyright (c) 2017-2019 Matej Aleksandrov, Matej Batič, Andrej Burja, Eva Erzin (Sinergise)
+Copyright (c) 2017-2019 Grega Milčinski, Matic Lubej, Devis Peresutti, Jernej Puc, Tomislav Slijepčević (Sinergise)
+Copyright (c) 2017-2019 Blaž Sovdat, Jovan Višnjić, Anže Zupanc, Lojze Žust (Sinergise)
+
+This source code is licensed under the MIT license found in the LICENSE
+file in the root directory of this source tree.
+"""
+
 import unittest
 import logging
 
@@ -19,7 +29,7 @@ class TestEOPatch(unittest.TestCase):
         bands[0] = bands[1]
         bands[1, 5:15, 5:15, :] = .5
         bands[0, 7:17, 5:15, :] = .5
-        mask = np.ones((2, 20, 20, 1))
+        mask = np.ones((2, 20, 20, 1), dtype=np.int16)
         ndvi = np.ones((2, 20, 20, 1))
         dem = np.ones((20, 20, 1))
 

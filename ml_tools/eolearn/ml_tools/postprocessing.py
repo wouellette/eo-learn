@@ -1,16 +1,21 @@
 """
 Module contains tools and EOTasks for morphological and postprocessing operations
+
+Credits:
+Copyright (c) 2017-2019 Matej Aleksandrov, Matej Batič, Andrej Burja, Eva Erzin (Sinergise)
+Copyright (c) 2017-2019 Grega Milčinski, Matic Lubej, Devis Peresutti, Jernej Puc, Tomislav Slijepčević (Sinergise)
+Copyright (c) 2017-2019 Blaž Sovdat, Jovan Višnjić, Anže Zupanc, Lojze Žust (Sinergise)
+
+This source code is licensed under the MIT license found in the LICENSE
+file in the root directory of this source tree.
 """
-# pylint: disable=no-name-in-module
-# pylint: disable=import-error
 
 import itertools as it
 from enum import Enum
 from abc import abstractmethod
 
-from skimage.morphology import opening, closing, erosion, dilation
-from skimage.morphology import disk, square, rectangle, diamond
-from skimage.filters.rank import median
+import skimage.morphology
+import skimage.filters.rank
 
 from eolearn.core import EOTask
 
@@ -33,11 +38,11 @@ class MorphologicalOperations(Enum):
         :return: function
         """
         return {
-            cls.OPENING: opening,
-            cls.CLOSING: closing,
-            cls.DILATION: dilation,
-            cls.EROSION: erosion,
-            cls.MEDIAN: median
+            cls.OPENING: skimage.morphology.opening,
+            cls.CLOSING: skimage.morphology.closing,
+            cls.DILATION: skimage.morphology.dilation,
+            cls.EROSION: skimage.morphology.erosion,
+            cls.MEDIAN: skimage.filters.rank.median
         }[morph_type]
 
 
@@ -53,7 +58,7 @@ class MorphologicalStructFactory:
         :return: The structuring element where elements of the neighborhood are 1 and 0 otherwise.
         :rtype: numpy.ndarray
         """
-        return disk(radius)
+        return skimage.morphology.disk(radius)
 
     @staticmethod
     def get_diamond(radius):
@@ -63,7 +68,7 @@ class MorphologicalStructFactory:
         :return: The structuring element where elements of the neighborhood are 1 and 0 otherwise.
         :rtype: numpy.ndarray
         """
-        return diamond(radius)
+        return skimage.morphology.diamond(radius)
 
     @staticmethod
     def get_rectangle(width, height):
@@ -75,7 +80,7 @@ class MorphologicalStructFactory:
         :return: A structuring element consisting only of ones, i.e. every pixel belongs to the neighborhood.
         :rtype: numpy.ndarray
         """
-        return rectangle(width, height)
+        return skimage.morphology.rectangle(width, height)
 
     @staticmethod
     def get_square(width):
@@ -85,7 +90,7 @@ class MorphologicalStructFactory:
         :return: A structuring element consisting only of ones, i.e. every pixel belongs to the neighborhood.
         :rtype: numpy.ndarray
         """
-        return square(width)
+        return skimage.morphology.square(width)
 
 
 class PostprocessingTask(EOTask):
@@ -99,6 +104,8 @@ class PostprocessingTask(EOTask):
 
     @abstractmethod
     def process(self, raster):
+        """ Abstract method for processing the raster
+        """
         raise NotImplementedError
 
     def execute(self, eopatch):

@@ -1,6 +1,17 @@
-""" Module handling processing of temporal features """
+"""
+Module handling processing of temporal features
 
-import itertools
+Credits:
+Copyright (c) 2017-2019 Matej Aleksandrov, Matej Batič, Andrej Burja, Eva Erzin (Sinergise)
+Copyright (c) 2017-2019 Grega Milčinski, Matic Lubej, Devis Peresutti, Jernej Puc, Tomislav Slijepčević (Sinergise)
+Copyright (c) 2017-2019 Blaž Sovdat, Jovan Višnjić, Anže Zupanc, Lojze Žust (Sinergise)
+
+This source code is licensed under the MIT license found in the LICENSE
+file in the root directory of this source tree.
+"""
+
+import itertools as it
+
 import numpy as np
 
 from eolearn.core import EOTask
@@ -193,7 +204,6 @@ class AddMaxMinNDVISlopeIndicesTask(EOTask):
         :return: eopatch with NDVI slope argmin/argmax features
         """
         # pylint: disable=invalid-name
-        # pylint: disable=unpacking-non-sequence
         if self.mask_data:
             valid_data_mask = eopatch.mask['VALID_DATA']
         else:
@@ -206,13 +216,13 @@ class AddMaxMinNDVISlopeIndicesTask(EOTask):
         all_dates = np.asarray([x.toordinal() for x in eopatch.timestamp])
 
         if ndvi.ndim == 4:
-            _, h, w, _ = ndvi.shape
+            h, w = ndvi.shape[1: 3]
         else:
             raise ValueError('{} feature has incorrect number of dimensions'.format(self.data_feature))
 
         argmax_ndvi_slope, argmin_ndvi_slope = np.zeros((h, w, 1), dtype=np.uint8), np.zeros((h, w, 1), dtype=np.uint8)
 
-        for ih, iw in itertools.product(range(h), range(w)):
+        for ih, iw in it.product(range(h), range(w)):
 
             ndvi_curve = ndvi[:, ih, iw, :]
             valid_idx = np.where(~ndvi.mask[:, ih, iw])[0]

@@ -1,13 +1,17 @@
 """
 The module implements the core graph data structure. It is used, for example, to model dependencies among tasks in the
 eoworkflow module.
+
+Credits:
+Copyright (c) 2017-2019 Matej Aleksandrov, Matej Batič, Andrej Burja, Eva Erzin (Sinergise)
+Copyright (c) 2017-2019 Grega Milčinski, Matic Lubej, Devis Peresutti, Jernej Puc, Tomislav Slijepčević (Sinergise)
+Copyright (c) 2017-2019 Blaž Sovdat, Jovan Višnjić, Anže Zupanc, Lojze Žust (Sinergise)
+
+This source code is licensed under the MIT license found in the LICENSE
+file in the root directory of this source tree.
 """
 
 import collections
-
-
-class NoSuchVertexError(ValueError):
-    pass
 
 
 class DirectedGraph:
@@ -18,8 +22,8 @@ class DirectedGraph:
     :param adjacency_dict: A dictionary mapping vertices to lists neighbors
     """
     def __init__(self, adjacency_dict=None):
-        self.adj_dict = collections.defaultdict(list, adjacency_dict) if adjacency_dict else collections.defaultdict(
-            list)
+        self.adj_dict = collections.defaultdict(list, adjacency_dict) if adjacency_dict else \
+            collections.defaultdict(list)
         self.indegrees = DirectedGraph._get_indegrees(self.adj_dict)
         self._vertices = set(self.adj_dict.keys()) | {v for neighs in self.adj_dict.values() for v in neighs}
 
@@ -71,9 +75,15 @@ class DirectedGraph:
         return len(self.adj_dict[vertex])
 
     def get_adj_dict(self):
+        """
+        :return: adj_dict
+        """
         return self.adj_dict
 
     def get_outdegrees(self):
+        """
+        :return: dictionary of out-degrees, see get_outdegree
+        """
         return {vertex: len(self.adj_dict[vertex]) for vertex in self.adj_dict}
 
     def add_edge(self, u_vertex, v_vertex):
@@ -162,6 +172,10 @@ class DirectedGraph:
 
     @staticmethod
     def from_edges(edges):
+        """ Return DirectedGraph created from edges
+        :param edges:
+        :return: DirectedGraph
+        """
         dag = DirectedGraph()
         for _u, _v in edges:
             dag.add_edge(_u, _v)

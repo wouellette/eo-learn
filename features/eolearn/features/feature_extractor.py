@@ -8,15 +8,27 @@ T -> I(T,T) | S(T,T) | D(T,T,T) | R(T,T) | B
 B -> B01 | B02 | B03 | ... | B12
 
 [1] http://www.mdpi.com/2072-4292/8/8/666
+
+Credits:
+Copyright (c) 2017-2019 Matej Aleksandrov, Matej Batič, Andrej Burja, Eva Erzin (Sinergise)
+Copyright (c) 2017-2019 Grega Milčinski, Matic Lubej, Devis Peresutti, Jernej Puc, Tomislav Slijepčević (Sinergise)
+Copyright (c) 2017-2019 Blaž Sovdat, Jovan Višnjić, Anže Zupanc, Lojze Žust (Sinergise)
+
+This source code is licensed under the MIT license found in the LICENSE
+file in the root directory of this source tree.
 """
-# pylint: disable=invalid-name
-import numpy as np
+
 import logging
+
+import numpy as np
 
 from eolearn.core import EOTask
 
 
 LOGGER = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
+# pylint: disable=missing-docstring
 
 
 class Lexer(list):
